@@ -1,0 +1,169 @@
+$ kubectl get nodes
+NAME             STATUS   ROLES                  AGE   VERSION
+docker-desktop   Ready    control-plane,master   29d   v1.21.2
+
+$ kubectl run nginx2 --image=nginx
+pod/nginx2 created
+
+$ kubectl get pods
+NAME     READY   STATUS             RESTARTS   AGE
+nginx1   0/1     ImagePullBackOff   0          7m10s
+nginx2   1/1     Running            0          4m24s
+
+$ kubectl get deployments
+No resources found in default namespace.
+
+$ kubectl get pods -o wide
+
+NAME     READY   STATUS             RESTARTS   AGE     IP          NODE             NOMINATED NODE   READINESS
+GATES
+nginx1   0/1     ImagePullBackOff   0          9m14s   10.1.0.58   docker-desktop   <none>           <none>
+nginx2   1/1     Running            0          6m28s   10.1.0.59   docker-desktop   <none>           <none>
+
+$ kubectl describe pod nginx2
+Name:         nginx2
+Namespace:    default
+Priority:     0
+Node:         docker-desktop/192.168.65.4
+Start Time:   Sun, 14 Nov 2021 22:38:11 -0500
+Labels:       run=nginx2
+Annotations:  <none>
+Status:       Running
+IP:           10.1.0.59
+IPs:
+  IP:  10.1.0.59
+Containers:
+  nginx2:
+    Container ID:   docker://a644b6b979e4a8b00fecc9fbeb497b963feb893538fca7d5e352fda28648609e
+    Image:          nginx
+    Image ID:       docker-pullable://nginx@sha256:dfef797ddddfc01645503cef9036369f03ae920cac82d344d58b637ee861fda1
+    Port:           <none>
+    Host Port:      <none>
+    State:          Running
+      Started:      Sun, 14 Nov 2021 22:38:57 -0500
+    Ready:          True
+    Restart Count:  0
+    Environment:    <none>
+    Mounts:
+      /var/run/secrets/kubernetes.io/serviceaccount from kube-api-access-nzk64 (ro)
+Conditions:
+  Type              Status
+  Initialized       True
+  Ready             True
+  ContainersReady   True
+  PodScheduled      True
+Volumes:
+  kube-api-access-nzk64:
+    Type:                    Projected (a volume that contains injected data from multiple sources)
+    TokenExpirationSeconds:  3607
+    ConfigMapName:           kube-root-ca.crt
+    ConfigMapOptional:       <nil>
+    DownwardAPI:             true
+QoS Class:                   BestEffort
+Node-Selectors:              <none>
+Tolerations:                 node.kubernetes.io/not-ready:NoExecute op=Exists for 300s
+                             node.kubernetes.io/unreachable:NoExecute op=Exists for 300s
+Events:
+  Type    Reason     Age   From               Message
+  ----    ------     ----  ----               -------
+  Normal  Scheduled  29m   default-scheduler  Successfully assigned default/nginx2 to docker-desktop
+  Normal  Pulling    29m   kubelet            Pulling image "nginx"
+  Normal  Pulled     28m   kubelet            Successfully pulled image "nginx" in 45.6300469s
+  Normal  Created    28m   kubelet            Created container nginx2
+  Normal  Started    28m   kubelet            Started container nginx2
+
+
+
+
+
+
+
+$ kubectl get pods
+NAME     READY   STATUS             RESTARTS   AGE
+nginx1   0/1     ImagePullBackOff   0          39m
+nginx2   1/1     Running            0          36m
+                                                                                 ✔
+
+$ kubectl exec nginx2 ls
+kubectl exec [POD] [COMMAND] is DEPRECATED and will be removed in a future version
+. Use kubectl exec [POD] -- [COMMAND] instead.
+bin
+boot
+dev
+docker-entrypoint.d
+docker-entrypoint.sh
+etc
+home
+lib
+lib64
+media
+mnt
+opt
+proc
+root
+run
+sbin
+srv
+sys
+tmp
+usr
+
+
+$ kubectl exec nginx2 -it bash
+kubectl exec [POD] [COMMAND] is DEPRECATED and will be removed in a future version
+. Use kubectl exec [POD] -- [COMMAND] instead.
+root@nginx2:/# ls
+bin   docker-entrypoint.d   home   media  proc  sbin  tmp
+boot  docker-entrypoint.sh  lib    mnt    root  srv   usr
+dev   etc                   lib64  opt    run   sys   var
+root@nginx2:/#
+root@nginx2:/# uname -a
+Linux nginx2 5.4.72-microsoft-standard-WSL2 #1 SMP Wed Oct 28 23:40:43 UTC 2020 x8
+6_64 GNU/Linux
+root@nginx2:/# df -h
+Filesystem      Size  Used Avail Use% Mounted on
+overlay         251G   11G  228G   5% /
+tmpfs            64M     0   64M   0% /dev
+tmpfs           6.2G     0  6.2G   0% /sys/fs/cgroup
+/dev/sdc        251G   11G  228G   5% /etc/hosts
+shm              64M     0   64M   0% /dev/shm
+tmpfs           6.2G   12K  6.2G   1% /run/secrets/kubernetes.io/serviceaccount
+tmpfs           6.2G     0  6.2G   0% /proc/acpi
+tmpfs           6.2G     0  6.2G   0% /sys/firmware
+root@nginx2:/#
+
+
+
+$ kubectl run apache1 --image=httpd --port=8080
+pod/apache1 created
+                                                                                                                 ✔
+
+$ kubectl get pods
+NAME      READY   STATUS              RESTARTS   AGE
+apache1   0/1     ContainerCreating   0          9s
+nginx1    0/1     ImagePullBackOff    0          45m
+nginx2    1/1     Running             0          42m
+                                                                                                                 ✔
+
+$ kubectl logs apache1
+AH00558: httpd: Could not reliably determine the server's fully qualified domain name, using 10.1.0.60. Set the 'ServerName' directive globally to suppress this message
+AH00558: httpd: Could not reliably determine the server's fully qualified domain name, using 10.1.0.60. Set the 'ServerName' directive globally to suppress this message
+[Mon Nov 15 04:20:49.781987 2021] [mpm_event:notice] [pid 1:tid 139666695499072] AH00489: Apache/2.4.51 (Unix) configured -- resuming normal operations
+[Mon Nov 15 04:20:49.782876 2021] [core:notice] [pid 1:tid 139666695499072] AH00094: Command line: 'httpd -D FOREGROUND'
+
+
+
+
+$ kubectl logs apache1 --tail=50
+AH00558: httpd: Could not reliably determine the server's fully qualified domain name, using 10.1.0.60. Set the 'ServerName' directive globally to suppress this message
+AH00558: httpd: Could not reliably determine the server's fully qualified domain name, using 10.1.0.60. Set the 'ServerName' directive globally to suppress this message
+[Mon Nov 15 04:20:49.781987 2021] [mpm_event:notice] [pid 1:tid 139666695499072] AH00489: Apache/2.4.51 (Unix) configured -- resuming normal operations
+[Mon Nov 15 04:20:49.782876 2021] [core:notice] [pid 1:tid 139666695499072] AH00094: Command line: 'httpd -D FOREGROUND'
+                                                                                                                                                                               ✔
+
+$ kubectl logs -f apache1
+AH00558: httpd: Could not reliably determine the server's fully qualified domain name, using 10.1.0.60. Set the 'ServerName' directive globally to suppress this message
+AH00558: httpd: Could not reliably determine the server's fully qualified domain name, using 10.1.0.60. Set the 'ServerName' directive globally to suppress this message
+[Mon Nov 15 04:20:49.781987 2021] [mpm_event:notice] [pid 1:tid 139666695499072] AH00489: Apache/2.4.51 (Unix) configured -- resuming normal operations
+[Mon Nov 15 04:20:49.782876 2021] [core:notice] [pid 1:tid 139666695499072] AH00094: Command line: 'httpd -D FOREGROUND'
+
